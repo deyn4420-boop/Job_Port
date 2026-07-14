@@ -38,7 +38,7 @@ job-portal/
 ### Backend
 ```bash
 cd backend
-cp .env.example .env     # fill in MONGO_URI and JWT secrets
+cp .env.example .env     # fill in MONGO_URI with your own Atlas connection string and JWT secrets
 npm install
 npm run dev               # http://localhost:5000
 ```
@@ -52,7 +52,7 @@ npm run dev               # http://localhost:3000
 ```
 
 You'll need a free MongoDB Atlas cluster — create one, whitelist your IP
-(or 0.0.0.0/0 for dev), and paste the connection string into `MONGO_URI`.
+(or 0.0.0.0/0 for dev), and paste your own Atlas connection string into `MONGO_URI`.
 
 ## What's implemented
 
