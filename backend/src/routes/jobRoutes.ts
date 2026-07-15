@@ -1,16 +1,22 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth";
+import {
+  createJob,
+  deleteJob,
+  getJob,
+  listJobs,
+  myJobs,
+  updateJob,
+} from "../controllers/jobController";
 
 const router = Router();
 
-// Public: anyone can browse jobs
-router.get("/", (req, res) => {
-  res.json({ message: "List of jobs (public) — implement Job model + query next" });
-});
+router.get("/", listJobs);
+router.get("/my-jobs", requireAuth, requireRole("recruiter", "admin"), myJobs);
+router.get("/:id", getJob);
 
-// Protected + role-gated: only recruiters can post jobs
-router.post("/", requireAuth, requireRole("recruiter", "admin"), (req, res) => {
-  res.json({ message: "Job created (stub) — implement Job model next" });
-});
+router.post("/", requireAuth, requireRole("recruiter", "admin"), createJob);
+router.patch("/:id", requireAuth, requireRole("recruiter", "admin"), updateJob);
+router.delete("/:id", requireAuth, requireRole("recruiter", "admin"), deleteJob);
 
 export default router;
