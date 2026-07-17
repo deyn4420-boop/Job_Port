@@ -20,7 +20,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
     req.user = { userId: payload.userId, role: payload.role };
     next();
   } catch (err) {
-    // Expired or invalid — client should call /api/auth/refresh and retry
+    // Expired or invalid - client should call /api/auth/refresh and retry
     return res.status(401).json({ message: "Invalid or expired access token" });
   }
 }

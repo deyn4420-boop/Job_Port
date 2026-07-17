@@ -2,17 +2,21 @@ import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth";
 import {
   createJob,
-  deleteJob,
-  getJob,
   listJobs,
-  myJobs,
+  getJob,
   updateJob,
+  deleteJob,
+  myJobs,
 } from "../controllers/jobController";
 
 const router = Router();
 
+// Public: browse/search open jobs
 router.get("/", listJobs);
+
+// Recruiter's own postings - must come before "/:id" so "my-jobs" isn't parsed as an id
 router.get("/my-jobs", requireAuth, requireRole("recruiter", "admin"), myJobs);
+
 router.get("/:id", getJob);
 
 router.post("/", requireAuth, requireRole("recruiter", "admin"), createJob);

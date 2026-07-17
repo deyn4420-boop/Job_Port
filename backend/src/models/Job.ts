@@ -14,7 +14,7 @@ export interface IJob extends Document {
   jobType: JobType;
   salaryMin?: number;
   salaryMax?: number;
-  postedBy: Types.ObjectId;
+  postedBy: Types.ObjectId; // ref User (recruiter)
   status: JobStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -40,6 +40,7 @@ const jobSchema = new Schema<IJob>(
   { timestamps: true }
 );
 
+// Supports filtering by status + text search together efficiently
 jobSchema.index({ title: "text", description: "text", skills: "text" });
 
 export const Job = model<IJob>("Job", jobSchema);

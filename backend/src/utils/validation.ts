@@ -56,7 +56,7 @@ export const jobQuerySchema = z.object({
   location: z.string().optional(),
   jobType: jobTypeEnum.optional(),
   workMode: workModeEnum.optional(),
-  skills: z.string().optional(),
+  skills: z.string().optional(), // comma-separated, split in controller
   salaryMin: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(10),

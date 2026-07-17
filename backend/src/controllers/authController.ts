@@ -47,7 +47,7 @@ export async function login(req: Request, res: Response) {
   // password field has select:false in the schema, so explicitly request it
   const user = await User.findOne({ email }).select("+password");
   if (!user || !(await user.comparePassword(password))) {
-    // Same message for both cases — don't leak which part was wrong
+    // Same message for both cases - don't leak which part was wrong
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
@@ -79,7 +79,7 @@ export async function refresh(req: Request, res: Response) {
 
     const accessToken = signAccessToken({ userId: user._id.toString(), role: user.role });
 
-    // Rotate the refresh token on every use — limits damage if one is ever stolen
+    // Rotate the refresh token on every use - limits damage if one is ever stolen
     const newRefreshToken = signRefreshToken({ userId: user._id.toString(), tokenVersion: user.tokenVersion });
     res.cookie(REFRESH_COOKIE_NAME, newRefreshToken, refreshCookieOptions);
 
