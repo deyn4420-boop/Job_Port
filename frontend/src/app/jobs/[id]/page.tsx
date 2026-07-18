@@ -6,6 +6,7 @@ import Link from "next/link";
 import { fetchJob, deleteJob } from "@/lib/jobsApi";
 import { Job } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { ApplyForm } from "@/components/ApplyForm";
 
 function formatSalary(job: Job) {
   if (!job.salaryMin && !job.salaryMax) return null;
@@ -23,6 +24,8 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showApplyForm, setShowApplyForm] = useState(false);
+  const [applied, setApplied] = useState(false);
 
   useEffect(() => {
     fetchJob(id)
@@ -114,13 +117,23 @@ export default function JobDetailPage() {
           </button>
         </div>
       ) : user?.role === "jobseeker" ? (
-        <button
-          disabled={job.status === "closed"}
-          onClick={() => alert("Application flow isn't built yet - coming in the next phase.")}
-          className="mt-8 rounded-md bg-black text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40"
-        >
-          {job.status === "closed" ? "Applications closed" : "Apply now"}
-        </button>
+        <div>
+          {applied ? (
+            <p className="mt-8 text-sm text-green-700 bg-green-50 rounded-md px-4 py-3">
+              Application submitted! You can track its status from your dashboard.
+            </p>
+          ) : showApplyForm ? (
+            <ApplyForm jobId={job._id} onApplied={() => setApplied(true)} />
+          ) : (
+            <button
+              disabled={job.status === "closed"}
+              onClick={() => setShowApplyForm(true)}
+              className="mt-8 rounded-md bg-black text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40"
+            >
+              {job.status === "closed" ? "Applications closed" : "Apply now"}
+            </button>
+          )}
+        </div>
       ) : null}
     </main>
   );

@@ -65,3 +65,14 @@ export const jobQuerySchema = z.object({
 export type CreateJobInput = z.infer<typeof createJobSchema>;
 export type UpdateJobInput = z.infer<typeof updateJobSchema>;
 export type JobQueryInput = z.infer<typeof jobQuerySchema>;
+
+export const applySchema = z.object({
+  coverNote: z.string().max(2000).optional(),
+});
+
+export const updateApplicationStatusSchema = z.object({
+  status: z.enum(["applied", "shortlisted", "rejected", "hired"]),
+});
+
+export type ApplyInput = z.infer<typeof applySchema>;
+export type UpdateApplicationStatusInput = z.infer<typeof updateApplicationStatusSchema>;

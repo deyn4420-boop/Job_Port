@@ -43,3 +43,20 @@ export interface JobFilters {
   salaryMin?: number;
   page?: number;
 }
+
+export type ApplicationStatus = "applied" | "shortlisted" | "rejected" | "hired";
+
+export interface Application {
+  _id: string;
+  job:
+    | { _id: string; title: string; location: string; workMode: WorkMode; jobType: JobType; status: JobStatus }
+    | string;
+  candidate: { _id: string; name: string; email: string } | string;
+  resumeUrl: string;
+  resumeOriginalName: string;
+  coverNote?: string;
+  status: ApplicationStatus;
+  matchScore?: number;
+  createdAt: string;
+  updatedAt: string;
+}
