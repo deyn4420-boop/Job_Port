@@ -5,6 +5,8 @@ import { Job } from "../models/Job";
 import { applySchema, updateApplicationStatusSchema } from "../utils/validation";
 import { AuthRequest } from "../middleware/auth";
 import { resumeUrlFor } from "../middleware/upload";
+import { extractResumeText } from "../utils/resumeParser";
+import { scoreResumeMatch } from "../utils/aiMatcher";
 
 export async function applyToJob(req: AuthRequest, res: Response) {
   const { jobId } = req.params;
@@ -38,13 +40,39 @@ export async function applyToJob(req: AuthRequest, res: Response) {
       coverNote: parsed.data.coverNote,
     });
 
-    return res.status(201).json({ application });
+    res.status(201).json({ application });
+
+    runMatchScoring(application._id.toString(), job, req.file.path, req.file.mimetype).catch((err) =>
+      console.error("Background match scoring crashed:", err)
+    );
+    return;
   } catch (err: unknown) {
     if (err && typeof err === "object" && "code" in err && err.code === 11000) {
       return res.status(409).json({ message: "You have already applied to this job" });
     }
     throw err;
   }
+}
+
+async function runMatchScoring(
+  applicationId: string,
+  job: { title: string; description: string; skills: string[] },
+  resumeFilePath: string,
+  resumeMimetype: string
+) {
+  const resumeText = await extractResumeText(resumeFilePath, resumeMimetype);
+  const result = await scoreResumeMatch(job.title, job.description, job.skills, resumeText);
+
+  if (!result) {
+    return;
+  }
+
+  await Application.findByIdAndUpdate(applicationId, {
+    matchScore: result.matchScore,
+    matchedSkills: result.matchedSkills,
+    missingSkills: result.missingSkills,
+    matchSummary: result.summary,
+  });
 }
 
 export async function myApplications(req: AuthRequest, res: Response) {
@@ -75,6 +103,8 @@ export async function jobApplicants(req: AuthRequest, res: Response) {
   const applications = await Application.find({ job: jobId })
     .sort({ createdAt: -1 })
     .populate({ path: "candidate", select: "name email" });
+
+  applications.sort((a, b) => (b.matchScore ?? -1) - (a.matchScore ?? -1));
 
   return res.json({ applications });
 }

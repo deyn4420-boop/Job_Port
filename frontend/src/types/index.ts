@@ -57,6 +57,9 @@ export interface Application {
   coverNote?: string;
   status: ApplicationStatus;
   matchScore?: number;
+  matchedSkills?: string[];
+  missingSkills?: string[];
+  matchSummary?: string;
   createdAt: string;
   updatedAt: string;
 }
