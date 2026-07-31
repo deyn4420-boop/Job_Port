@@ -3,7 +3,7 @@ import { Job } from "@/types";
 
 function formatSalary(job: Job) {
   if (!job.salaryMin && !job.salaryMax) return null;
-  if (job.salaryMin && job.salaryMax) return `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}`;
+  if (job.salaryMin && job.salaryMax) return `$${job.salaryMin.toLocaleString()} – $${job.salaryMax.toLocaleString()}`;
   if (job.salaryMin) return `From $${job.salaryMin.toLocaleString()}`;
   return `Up to $${job.salaryMax!.toLocaleString()}`;
 }
@@ -20,7 +20,7 @@ export function JobCard({ job }: { job: Job }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="font-medium">{job.title}</h3>
-          <p className="text-sm text-gray-500">{companyName} - {job.location}</p>
+          <p className="text-sm text-gray-500">{companyName} · {job.location}</p>
         </div>
         <span className="text-xs uppercase tracking-wide text-gray-400 whitespace-nowrap">
           {job.workMode}

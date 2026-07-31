@@ -8,7 +8,7 @@ interface Props {
   onApplied: () => void;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB, matches backend limit
 
 export function ApplyForm({ jobId, onApplied }: Props) {
   const [resume, setResume] = useState<File | null>(null);
@@ -25,7 +25,6 @@ export function ApplyForm({ jobId, onApplied }: Props) {
       setResume(null);
       return;
     }
-
     setResume(file);
   }
 
@@ -35,7 +34,6 @@ export function ApplyForm({ jobId, onApplied }: Props) {
       setError("Please attach your resume");
       return;
     }
-
     setError(null);
     setSubmitting(true);
     try {
@@ -53,8 +51,13 @@ export function ApplyForm({ jobId, onApplied }: Props) {
       <h2 className="font-medium">Apply to this job</h2>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Resume (PDF, DOC, or DOCX, max 5MB)</label>
-        <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} className="w-full text-sm" />
+        <label className="block text-sm font-medium mb-1">Resume (PDF, DOC, or DOCX — max 5MB)</label>
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={handleFileChange}
+          className="w-full text-sm"
+        />
       </div>
 
       <div>

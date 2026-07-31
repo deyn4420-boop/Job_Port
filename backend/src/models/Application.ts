@@ -4,12 +4,13 @@ export type ApplicationStatus = "applied" | "shortlisted" | "rejected" | "hired"
 
 export interface IApplication extends Document {
   _id: Types.ObjectId;
-  job: Types.ObjectId;
-  candidate: Types.ObjectId;
+  job: Types.ObjectId; // ref Job
+  candidate: Types.ObjectId; // ref User
   resumeUrl: string;
   resumeOriginalName: string;
   coverNote?: string;
   status: ApplicationStatus;
+  // Filled in later by the AI matching feature — left optional/null until then
   matchScore?: number;
   matchedSkills?: string[];
   missingSkills?: string[];
@@ -38,6 +39,7 @@ const applicationSchema = new Schema<IApplication>(
   { timestamps: true }
 );
 
+// One application per candidate per job — enforced at the DB level, not just in app code
 applicationSchema.index({ job: 1, candidate: 1 }, { unique: true });
 
 export const Application = model<IApplication>("Application", applicationSchema);

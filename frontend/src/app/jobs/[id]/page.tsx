@@ -10,7 +10,7 @@ import { ApplyForm } from "@/components/ApplyForm";
 
 function formatSalary(job: Job) {
   if (!job.salaryMin && !job.salaryMax) return null;
-  if (job.salaryMin && job.salaryMax) return `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}`;
+  if (job.salaryMin && job.salaryMax) return `$${job.salaryMin.toLocaleString()} – $${job.salaryMax.toLocaleString()}`;
   if (job.salaryMin) return `From $${job.salaryMin.toLocaleString()}`;
   return `Up to $${job.salaryMax!.toLocaleString()}`;
 }
@@ -74,14 +74,14 @@ export default function JobDetailPage() {
   return (
     <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
       <Link href="/jobs" className="text-sm text-gray-500 hover:underline">
-        Back to jobs
+        ← Back to jobs
       </Link>
 
       <div className="flex items-start justify-between mt-4 gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{job.title}</h1>
           <p className="text-gray-500 mt-1">
-            {companyName} - {job.location} - <span className="capitalize">{job.workMode}</span>
+            {companyName} · {job.location} · <span className="capitalize">{job.workMode}</span>
           </p>
         </div>
         {job.status === "closed" && (
@@ -108,6 +108,12 @@ export default function JobDetailPage() {
 
       {isOwner ? (
         <div className="flex gap-2 mt-8">
+          <Link
+            href={`/jobs/${job._id}/edit`}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm"
+          >
+            Edit posting
+          </Link>
           <button
             onClick={handleDelete}
             disabled={deleting}

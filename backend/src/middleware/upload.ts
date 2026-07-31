@@ -6,6 +6,7 @@ import { Request } from "express";
 
 const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads", "resumes");
 
+// Ensure the folder exists — matters on a fresh clone where uploads/ isn't committed
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
@@ -38,9 +39,13 @@ function fileFilter(req: Request, file: Express.Multer.File, cb: multer.FileFilt
 export const resumeUpload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
+// NOTE: this is local-disk storage, fine for development. In production, swap
+// the `storage` engine for a Cloudinary/S3 multer adapter so files survive
+// deploys/restarts — everywhere else in the app only cares about resumeUrl,
+// so that swap doesn't touch the controller or model.
 export function resumeUrlFor(filename: string): string {
   return `/uploads/resumes/${filename}`;
 }

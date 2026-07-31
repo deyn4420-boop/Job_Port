@@ -10,9 +10,7 @@ export async function applyToJob(
 ): Promise<{ application: Application }> {
   const formData = new FormData();
   formData.append("resume", resume);
-  if (coverNote) {
-    formData.append("coverNote", coverNote);
-  }
+  if (coverNote) formData.append("coverNote", coverNote);
 
   return apiFetch(`/applications/jobs/${jobId}/apply`, {
     method: "POST",
@@ -38,6 +36,8 @@ export async function updateApplicationStatus(
   });
 }
 
+// Resume URLs from the API are relative (e.g. /uploads/resumes/xyz.pdf) since
+// the backend doesn't know its own public origin. Resolve against the API host.
 export function resolveResumeUrl(resumeUrl: string): string {
   const apiOrigin = API_BASE_URL.replace(/\/api\/?$/, "");
   return `${apiOrigin}${resumeUrl}`;

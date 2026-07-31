@@ -1,8 +1,10 @@
 import { Response } from "express";
 import { Types } from "mongoose";
 import { Job } from "../models/Job";
+import { Application } from "../models/Application";
 import { createJobSchema, updateJobSchema, jobQuerySchema } from "../utils/validation";
 import { AuthRequest } from "../middleware/auth";
+import { notifyApplicantsOfJobUpdate } from "../utils/notifications";
 
 export async function createJob(req: AuthRequest, res: Response) {
   const parsed = createJobSchema.safeParse(req.body);
@@ -89,7 +91,23 @@ export async function updateJob(req: AuthRequest, res: Response) {
   Object.assign(job, parsed.data);
   await job.save();
 
-  return res.json({ job });
+  res.json({ job });
+
+  // Fire-and-forget: let existing applicants know the posting changed.
+  Application.find({ job: job._id })
+    .populate<{ candidate: { email: string } }>("candidate", "email")
+    .then((applications) => {
+      const applicantEmails = applications.map((a) => a.candidate.email);
+      if (applicantEmails.length === 0) return;
+      notifyApplicantsOfJobUpdate({
+        applicantEmails,
+        jobTitle: job.title,
+        jobId: job._id.toString(),
+      });
+    })
+    .catch((err) => console.error("Failed to look up applicants for notification:", err));
+
+  return;
 }
 
 export async function deleteJob(req: AuthRequest, res: Response) {

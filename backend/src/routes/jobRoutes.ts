@@ -14,7 +14,7 @@ const router = Router();
 // Public: browse/search open jobs
 router.get("/", listJobs);
 
-// Recruiter's own postings - must come before "/:id" so "my-jobs" isn't parsed as an id
+// Recruiter's own postings — must come before "/:id" so "my-jobs" isn't parsed as an id
 router.get("/my-jobs", requireAuth, requireRole("recruiter", "admin"), myJobs);
 
 router.get("/:id", getJob);

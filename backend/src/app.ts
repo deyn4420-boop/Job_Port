@@ -17,6 +17,9 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+
+// Serves uploaded resumes. Fine for dev; in production point this at
+// Cloudinary/S3 instead and drop this line (see middleware/upload.ts).
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/api/health", (req, res) => {
@@ -32,7 +35,7 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Central error handler - keep last
+// Central error handler — keep last
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: err.message });

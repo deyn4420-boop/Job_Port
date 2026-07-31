@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [dataLoading, setDataLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,21 +32,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user?.role === "recruiter" || user?.role === "admin") {
-      void Promise.resolve().then(() => {
-        setDataLoading(true);
-        fetchMyJobs()
-          .then((data) => setJobs(data.jobs))
-          .catch((err) => setError(err instanceof Error ? err.message : "Failed to load postings"))
-          .finally(() => setDataLoading(false));
-      });
+      fetchMyJobs()
+        .then((data) => setJobs(data.jobs))
+        .catch((err) => setError(err instanceof Error ? err.message : "Failed to load postings"))
+        .finally(() => setDataLoading(false));
     } else if (user?.role === "jobseeker") {
-      void Promise.resolve().then(() => {
-        setDataLoading(true);
-        fetchMyApplications()
-          .then((data) => setApplications(data.applications))
-          .catch((err) => setError(err instanceof Error ? err.message : "Failed to load applications"))
-          .finally(() => setDataLoading(false));
-      });
+      fetchMyApplications()
+        .then((data) => setApplications(data.applications))
+        .catch((err) => setError(err instanceof Error ? err.message : "Failed to load applications"))
+        .finally(() => setDataLoading(false));
     }
   }, [user]);
 
@@ -97,7 +91,7 @@ export default function DashboardPage() {
                   className="flex items-center justify-between rounded-md border border-gray-200 px-4 py-3"
                 >
                   <Link href={`/jobs/${job._id}`} className="min-w-0">
-                    <p className="text-sm font-medium">{job.title}</p>
+                    <p className="text-sm font-medium truncate">{job.title}</p>
                     <p className="text-xs text-gray-500">{job.location}</p>
                   </Link>
                   <div className="flex items-center gap-3 shrink-0">
@@ -108,6 +102,9 @@ export default function DashboardPage() {
                     >
                       {job.status}
                     </span>
+                    <Link href={`/jobs/${job._id}/edit`} className="text-xs underline text-gray-600">
+                      Edit
+                    </Link>
                     <Link href={`/jobs/${job._id}/applicants`} className="text-xs underline text-gray-600">
                       Applicants
                     </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -43,10 +43,7 @@ export default function ApplicantsPage() {
 
   const loadData = useCallback(
     (opts: { silent?: boolean } = {}) => {
-      if (!opts.silent) {
-        setLoading(true);
-      }
-
+      if (!opts.silent) setLoading(true);
       return Promise.all([fetchJob(id), fetchJobApplicants(id)])
         .then(([jobData, appsData]) => {
           setJob(jobData.job);
@@ -59,20 +56,14 @@ export default function ApplicantsPage() {
   );
 
   useEffect(() => {
-    if (!user || user.role === "jobseeker") {
-      return;
-    }
-
-    void loadData();
+    if (!user || user.role === "jobseeker") return;
+    void Promise.resolve().then(() => loadData());
   }, [user, loadData]);
 
   async function handleRefresh() {
     setRefreshing(true);
-    try {
-      await loadData({ silent: true });
-    } finally {
-      setRefreshing(false);
-    }
+    await loadData({ silent: true });
+    setRefreshing(false);
   }
 
   async function handleStatusChange(applicationId: string, status: ApplicationStatus) {
@@ -95,11 +86,9 @@ export default function ApplicantsPage() {
     );
   }
 
-  if (!user || user.role === "jobseeker") {
-    return null;
-  }
+  if (!user || user.role === "jobseeker") return null;
 
-  const hasUnscored = applications.some((application) => application.matchScore === undefined);
+  const hasUnscored = applications.some((a) => a.matchScore === undefined);
 
   return (
     <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
@@ -122,7 +111,7 @@ export default function ApplicantsPage() {
 
       {hasUnscored && (
         <p className="text-xs text-gray-400 mt-1">
-          Some applications are still being scored. Refresh in a few seconds.
+          Some applications are still being scored - hit refresh in a few seconds.
         </p>
       )}
 
@@ -134,7 +123,6 @@ export default function ApplicantsPage() {
         <div className="mt-6 space-y-3">
           {applications.map((app) => {
             const candidate = typeof app.candidate === "object" ? app.candidate : null;
-
             return (
               <div key={app._id} className="rounded-lg border border-gray-200 p-4">
                 <div className="flex items-start justify-between gap-4">
@@ -148,7 +136,9 @@ export default function ApplicantsPage() {
                         {app.matchScore}% match
                       </span>
                     ) : (
-                      <span className="text-xs rounded-full px-2 py-1 bg-gray-50 text-gray-400">Scoring...</span>
+                      <span className="text-xs rounded-full px-2 py-1 bg-gray-50 text-gray-400">
+                        Scoring...
+                      </span>
                     )}
                     <span className={`text-xs rounded-full px-2 py-1 whitespace-nowrap ${STATUS_STYLES[app.status]}`}>
                       {app.status}
@@ -156,7 +146,9 @@ export default function ApplicantsPage() {
                   </div>
                 </div>
 
-                {app.matchSummary && <p className="text-sm text-gray-700 mt-3">{app.matchSummary}</p>}
+                {app.matchSummary && (
+                  <p className="text-sm text-gray-700 mt-3">{app.matchSummary}</p>
+                )}
 
                 {(app.matchedSkills?.length || app.missingSkills?.length) && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
@@ -173,7 +165,9 @@ export default function ApplicantsPage() {
                   </div>
                 )}
 
-                {app.coverNote && <p className="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{app.coverNote}</p>}
+                {app.coverNote && (
+                  <p className="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{app.coverNote}</p>
+                )}
 
                 <div className="flex items-center justify-between mt-4">
                   <a
@@ -191,9 +185,9 @@ export default function ApplicantsPage() {
                     onChange={(e) => handleStatusChange(app._id, e.target.value as ApplicationStatus)}
                     className="text-sm rounded-md border border-gray-300 px-2 py-1"
                   >
-                    {STATUS_OPTIONS.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
                       </option>
                     ))}
                   </select>

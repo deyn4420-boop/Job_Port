@@ -1,6 +1,6 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// Access token lives in memory only - NOT localStorage/sessionStorage.
+// Access token lives in memory only — NOT localStorage/sessionStorage.
 // This avoids exposing it to XSS attacks. It resets on page refresh,
 // which is fine because we silently re-fetch it via the refresh cookie on app load.
 let accessToken: string | null = null;
@@ -20,7 +20,7 @@ interface RequestOptions extends RequestInit {
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
-  // De-dupe concurrent refresh calls - if 3 requests 401 at once,
+  // De-dupe concurrent refresh calls — if 3 requests 401 at once,
   // only fire one /refresh call and let the others wait on it.
   if (!refreshPromise) {
     refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -49,6 +49,8 @@ export async function apiFetch<T = unknown>(path: string, options: RequestOption
       ...rest,
       credentials: "include",
       headers: {
+        // Don't set Content-Type for FormData — the browser needs to set its
+        // own multipart boundary. Only default to JSON for plain object bodies.
         ...(rest.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
@@ -57,7 +59,7 @@ export async function apiFetch<T = unknown>(path: string, options: RequestOption
 
   let res = await doFetch(accessToken);
 
-  // Access token expired - refresh once, then retry the original request
+  // Access token expired — refresh once, then retry the original request
   if (res.status === 401 && !skipAuth) {
     const newToken = await refreshAccessToken();
     if (newToken) {
