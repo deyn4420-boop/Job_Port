@@ -31,6 +31,17 @@ export function Navbar() {
             </>
           )}
 
+          {user?.role === "jobseeker" && (
+            <>
+              <Link href="/saved" className="text-gray-600 hover:text-black">
+                Saved Jobs
+              </Link>
+              <Link href="/dashboard" className="text-gray-600 hover:text-black">
+                My Applications
+              </Link>
+            </>
+          )}
+
           {user ? (
             <button
               onClick={() => logout().then(() => router.push("/login"))}

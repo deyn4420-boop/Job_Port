@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { fetchJobs } from "@/lib/jobsApi";
+import { fetchSavedJobIds } from "@/lib/savedJobsApi";
+import { useAuth } from "@/context/AuthContext";
 import { Job, JobFilters, Pagination, JobType, WorkMode } from "@/types";
 import { JobCard } from "@/components/JobCard";
 
@@ -9,15 +11,15 @@ const JOB_TYPES: JobType[] = ["full-time", "part-time", "contract", "internship"
 const WORK_MODES: WorkMode[] = ["remote", "hybrid", "onsite"];
 
 export default function JobsPage() {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
-  // Raw text inputs (debounced before becoming real filters)
   const [searchInput, setSearchInput] = useState("");
   const [locationInput, setLocationInput] = useState("");
-
   const [filters, setFilters] = useState<JobFilters>({ page: 1 });
 
   const loadJobs = useCallback(async (f: JobFilters) => {
@@ -38,7 +40,14 @@ export default function JobsPage() {
     void Promise.resolve().then(() => loadJobs(filters));
   }, [filters, loadJobs]);
 
-  // Debounce free-text inputs so we're not hitting the API on every keystroke
+  useEffect(() => {
+    if (user?.role === "jobseeker") {
+      fetchSavedJobIds()
+        .then((data) => setSavedIds(new Set(data.jobIds)))
+        .catch(() => {});
+    }
+  }, [user]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setFilters((prev) => ({
@@ -59,11 +68,19 @@ export default function JobsPage() {
     setFilters((prev) => ({ ...prev, page }));
   }
 
+  function toggleSaved(jobId: string, isSaved: boolean) {
+    setSavedIds((prev) => {
+      const next = new Set(prev);
+      if (isSaved) next.add(jobId);
+      else next.delete(jobId);
+      return next;
+    });
+  }
+
   return (
     <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
       <h1 className="text-2xl font-semibold mb-6">Browse Jobs</h1>
 
-      {/* Filter bar */}
       <div className="flex flex-wrap gap-2 mb-6">
         <input
           placeholder="Search title, description, skills..."
@@ -83,9 +100,9 @@ export default function JobsPage() {
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         >
           <option value="">Any job type</option>
-          {JOB_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t.replace("-", " ")}
+          {JOB_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type.replace("-", " ")}
             </option>
           ))}
         </select>
@@ -95,9 +112,9 @@ export default function JobsPage() {
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         >
           <option value="">Any work mode</option>
-          {WORK_MODES.map((m) => (
-            <option key={m} value={m}>
-              {m}
+          {WORK_MODES.map((mode) => (
+            <option key={mode} value={mode}>
+              {mode}
             </option>
           ))}
         </select>
@@ -112,7 +129,12 @@ export default function JobsPage() {
       ) : (
         <div className="grid gap-3">
           {jobs.map((job) => (
-            <JobCard key={job._id} job={job} />
+            <JobCard
+              key={job._id}
+              job={job}
+              saved={user?.role === "jobseeker" ? savedIds.has(job._id) : undefined}
+              onToggleSave={(isSaved) => toggleSaved(job._id, isSaved)}
+            />
           ))}
         </div>
       )}

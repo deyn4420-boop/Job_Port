@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchJob, deleteJob } from "@/lib/jobsApi";
+import { fetchSavedJobIds } from "@/lib/savedJobsApi";
 import { Job } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { ApplyForm } from "@/components/ApplyForm";
+import { SaveButton } from "@/components/SaveButton";
 
 function formatSalary(job: Job) {
   if (!job.salaryMin && !job.salaryMax) return null;
-  if (job.salaryMin && job.salaryMax) return `$${job.salaryMin.toLocaleString()} – $${job.salaryMax.toLocaleString()}`;
+  if (job.salaryMin && job.salaryMax) return `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}`;
   if (job.salaryMin) return `From $${job.salaryMin.toLocaleString()}`;
   return `Up to $${job.salaryMax!.toLocaleString()}`;
 }
@@ -26,6 +28,7 @@ export default function JobDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     fetchJob(id)
@@ -33,6 +36,14 @@ export default function JobDetailPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load job"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (user?.role === "jobseeker") {
+      fetchSavedJobIds()
+        .then((data) => setSaved(data.jobIds.includes(id)))
+        .catch(() => {});
+    }
+  }, [id, user]);
 
   const ownerId = job && typeof job.postedBy === "object" ? job.postedBy._id : job?.postedBy;
   const isOwner = user && ownerId === user.id;
@@ -74,14 +85,14 @@ export default function JobDetailPage() {
   return (
     <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
       <Link href="/jobs" className="text-sm text-gray-500 hover:underline">
-        ← Back to jobs
+        Back to jobs
       </Link>
 
       <div className="flex items-start justify-between mt-4 gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{job.title}</h1>
           <p className="text-gray-500 mt-1">
-            {companyName} · {job.location} · <span className="capitalize">{job.workMode}</span>
+            {companyName} - {job.location} - <span className="capitalize">{job.workMode}</span>
           </p>
         </div>
         {job.status === "closed" && (
@@ -124,21 +135,27 @@ export default function JobDetailPage() {
         </div>
       ) : user?.role === "jobseeker" ? (
         <div>
+          <div className="mt-8 flex items-center gap-3">
+            {!applied &&
+              (showApplyForm ? null : (
+                <button
+                  disabled={job.status === "closed"}
+                  onClick={() => setShowApplyForm(true)}
+                  className="rounded-md bg-black text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40"
+                >
+                  {job.status === "closed" ? "Applications closed" : "Apply now"}
+                </button>
+              ))}
+            <SaveButton jobId={job._id} initialSaved={saved} onChange={setSaved} />
+          </div>
+
           {applied ? (
-            <p className="mt-8 text-sm text-green-700 bg-green-50 rounded-md px-4 py-3">
+            <p className="mt-4 text-sm text-green-700 bg-green-50 rounded-md px-4 py-3">
               Application submitted! You can track its status from your dashboard.
             </p>
           ) : showApplyForm ? (
             <ApplyForm jobId={job._id} onApplied={() => setApplied(true)} />
-          ) : (
-            <button
-              disabled={job.status === "closed"}
-              onClick={() => setShowApplyForm(true)}
-              className="mt-8 rounded-md bg-black text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40"
-            >
-              {job.status === "closed" ? "Applications closed" : "Apply now"}
-            </button>
-          )}
+          ) : null}
         </div>
       ) : null}
     </main>
